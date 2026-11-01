@@ -262,6 +262,25 @@ Drop the two feature flags for the full build. The executable is
 `--smoke-test` run under Wine without a display; `--audio-devices` lists the
 microphones, speakers and cameras Wine sees.
 
+### On Windows itself
+
+The same build runs on a Windows machine, without the Nix shell, against the
+Visual Studio build tools (which build Skia) and LLVM's `clang-cl` (which
+builds this repository's C and FFmpeg's). Two settings point it at them:
+
+```sh
+export SKIA_BINARIES_URL="file://C:/path/to/skia-binaries-b7f043e0b1e2a850e702-x86_64-pc-windows-msvc-d3d-ganesh-gl-jpegd-jpege-pdf-static.tar.gz"
+export CC=clang-cl CXX=clang-cl
+cargo build --profile fast --no-default-features --features desktop,discord
+```
+
+The URL names the archive `nix/prepare-windows-skia.py` prepared. Without it,
+rust-skia downloads its own Windows archive, whose dynamic CRT doesn't link
+beside a `+crt-static` binary. `CC` and `CXX` keep Microsoft's compiler away
+from WebRTC's and FFmpeg's C, which are Clang's: it rejects their flags and
+their inline assembly. The executable is `target/fast/yapfast.exe`, and it
+needs no Visual C++ runtime DLL.
+
 ## Test under Wine
 
 Build the test executable without running it, then run it with Wine.
